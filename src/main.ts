@@ -39,6 +39,8 @@ async function createApp(): Promise<Application> {
   await app.init({
     backgroundColor: CONFIG.BACKGROUND_COLOR,
     resizeTo: window,
+    resolution: window.devicePixelRatio,
+    autoDensity: true,
   });
 
   document.body.style.margin = '0';
@@ -80,8 +82,9 @@ async function createImage(scale: number): Promise<Sprite> {
   return image;
 }
 
-function setupInteraction({ app, image, text }: SceneContext): () => void {
+function setupInteraction({ app, image, text }: SceneContext): void {
   app.stage.eventMode = 'static';
+  app.stage.interactiveChildren = false;
   app.stage.cursor = 'pointer';
 
   const onPointerDown = (): void => {
@@ -97,13 +100,9 @@ function setupInteraction({ app, image, text }: SceneContext): () => void {
   };
 
   app.stage.on('pointerdown', onPointerDown);
-
-  return () => {
-    app.stage.off('pointerdown', onPointerDown);
-  };
 }
 
-function setupResize({ app, image, text, background }: SceneContext): () => void {
+function setupResize({ app, image, text, background }: SceneContext): void {
   const hitArea = new Rectangle();
   app.stage.hitArea = hitArea;
 
@@ -122,10 +121,6 @@ function setupResize({ app, image, text, background }: SceneContext): () => void
 
   resize();
   app.renderer.on('resize', resize);
-
-  return () => {
-    app.renderer.off('resize', resize);
-  };
 }
 
 async function main(): Promise<void> {
