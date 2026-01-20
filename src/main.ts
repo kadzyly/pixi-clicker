@@ -2,15 +2,35 @@ import './style.css';
 import { Application, Assets, Sprite, Text, Rectangle } from 'pixi.js';
 
 const CONFIG = {
-  BACKGROUND_COLOR: 0x000000,
+  BACKGROUND_COLOR: 0x000000, // black
   TEXT_STYLE: {
     fill: '#ffffff',
-    fontSize: 32,
+    fontSize: 30,
   },
+  COUNT_TEXT: 'Count:',
   SCALE_STEP: 0.1,
   MAX_SCALE: 3,
   IMAGE_OFFSET_Y: 100,
 };
+
+type SceneContext = {
+  app: Application;
+  image: Sprite;
+  text: Text;
+};
+
+type GameState = {
+  count: number;
+};
+
+const state: GameState = {
+  count: 0,
+};
+
+function getCounterText(count: number): string {
+  return `Count: ${count}`;
+}
+
 
 async function createApp(): Promise<Application> {
   const app = new Application();
@@ -28,11 +48,12 @@ async function createApp(): Promise<Application> {
 
 function createCounterText(): Text {
   const text = new Text({
-    text: 'Count: 0',
+    text: getCounterText(state.count),
     style: CONFIG.TEXT_STYLE,
   });
 
   text.anchor.set(0.5);
+
   return text;
 }
 
@@ -46,21 +67,13 @@ async function createImage(scale: number): Promise<Sprite> {
   return image;
 }
 
-type SceneContext = {
-  app: Application;
-  image: Sprite;
-  text: Text;
-};
-
-function setupInteraction({ app, image, text }: SceneContext): void{
-  let count = 0;
-
+function setupInteraction({ app, image, text }: SceneContext): () => void {
   app.stage.eventMode = 'static';
   app.stage.cursor = 'pointer';
 
-  app.stage.on('pointerdown', () => {
-    count += 1;
-    text.text = `Count: ${count}`;
+  const onPointerDown = (): void => {
+    state.count += 1;
+    text.text = getCounterText(state.count);
 
     const nextScale = Math.min(
       image.scale.x + CONFIG.SCALE_STEP,
@@ -68,11 +81,18 @@ function setupInteraction({ app, image, text }: SceneContext): void{
     );
 
     image.scale.set(nextScale);
-  });
+  };
+
+  app.stage.on('pointerdown', onPointerDown);
+
+  return () => {
+    app.stage.off('pointerdown', onPointerDown);
+  };
 }
 
 function setupResize({ app, image, text }: SceneContext): () => void {
   const hitArea = new Rectangle();
+  app.stage.hitArea = hitArea;
 
   function resize() {
     const { width, height } = app.screen;
@@ -82,7 +102,6 @@ function setupResize({ app, image, text }: SceneContext): () => void {
 
     hitArea.width = width;
     hitArea.height = height;
-    app.stage.hitArea = hitArea;
   }
 
   resize();
