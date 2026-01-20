@@ -1,5 +1,8 @@
 # pixi-clicker
 
+![ScreenShot_20260120172026](https://github.com/user-attachments/assets/d6f420ff-5921-4ddb-8999-c6b24293c613)
+
+
 ## Tech Stack
 
 * **PixiJS** ^8.15.0
