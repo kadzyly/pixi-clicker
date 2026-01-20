@@ -1,5 +1,5 @@
 import './style.css';
-import { Application, Assets, Sprite, Text, Rectangle } from 'pixi.js';
+import { Application, Assets, Sprite, Text, Rectangle, TilingSprite } from 'pixi.js';
 
 const CONFIG = {
   BACKGROUND_COLOR: 0x000000, // black
@@ -7,16 +7,17 @@ const CONFIG = {
     fill: '#ffffff',
     fontSize: 30,
   },
-  COUNT_TEXT: 'Count:',
   SCALE_STEP: 0.1,
   MAX_SCALE: 3,
-  IMAGE_OFFSET_Y: 100,
+  IMAGE_OFFSET_Y: 60,
+  TEXT_OFFSET_Y: -60,
 };
 
 type SceneContext = {
   app: Application;
   image: Sprite;
   text: Text;
+  background: TilingSprite;
 };
 
 type GameState = {
@@ -44,6 +45,18 @@ async function createApp(): Promise<Application> {
   document.body.appendChild(app.canvas);
 
   return app;
+}
+
+async function createBackground(width: number, height: number): Promise<TilingSprite> {
+  const texture = await Assets.load('./background.jpg');
+
+  const background = new TilingSprite({ texture, width, height });
+
+  background.alpha = 0.5;
+  background.tint = 0x808080; // gray
+  background.position.set(0, 0);
+
+  return background;
 }
 
 function createCounterText(): Text {
@@ -90,14 +103,17 @@ function setupInteraction({ app, image, text }: SceneContext): () => void {
   };
 }
 
-function setupResize({ app, image, text }: SceneContext): () => void {
+function setupResize({ app, image, text, background }: SceneContext): () => void {
   const hitArea = new Rectangle();
   app.stage.hitArea = hitArea;
 
   function resize() {
     const { width, height } = app.screen;
 
-    text.position.set(width / 2, height / 2);
+    background.width = width;
+    background.height = height;
+
+    text.position.set(width / 2, height / 2 + CONFIG.TEXT_OFFSET_Y);
     image.position.set(width / 2, height / 2 + CONFIG.IMAGE_OFFSET_Y);
 
     hitArea.width = width;
@@ -115,13 +131,14 @@ function setupResize({ app, image, text }: SceneContext): () => void {
 async function main(): Promise<void> {
   const app = await createApp();
 
+  const background = await createBackground(app.screen.width, app.screen.height);
   const text = createCounterText();
   const image = await createImage(0.5);
 
-  app.stage.addChild(image, text);
+  app.stage.addChild(background, image, text);
 
-  setupInteraction({ app, image, text });
-  setupResize({ app, image, text });
+  setupInteraction({ app, image, text, background });
+  setupResize({ app, image, text, background });
 }
 
 main();
