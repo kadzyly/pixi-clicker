@@ -13,6 +13,11 @@ const CONFIG = {
   TEXT_OFFSET_Y: -60,
 };
 
+const ASSETS = {
+  BACKGROUND: './background.jpg',
+  LOGO: './pixi-logo.png',
+};
+
 type SceneContext = {
   app: Application;
   image: Sprite;
@@ -50,7 +55,7 @@ async function createApp(): Promise<Application> {
 }
 
 async function createBackground(width: number, height: number): Promise<TilingSprite> {
-  const texture = await Assets.load('./background.jpg');
+  const texture = await Assets.load(ASSETS.BACKGROUND);
 
   const background = new TilingSprite({ texture, width, height });
 
@@ -73,7 +78,7 @@ function createCounterText(): Text {
 }
 
 async function createImage(scale: number): Promise<Sprite> {
-  const texture = await Assets.load('./pixi-logo.png');
+  const texture = await Assets.load(ASSETS.LOGO);
   const image = new Sprite(texture);
 
   image.anchor.set(0.5);
